@@ -18,11 +18,21 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const transactionSchema = z.object({
+  name: z.string().min(1, { message: "Description is required" }),
+  amount: z.string().min(1, { message: "Amount is required" }),
+  category: z.string().min(1, { message: "Category is required" }),
+  date: z.string().min(1, { message: "Date is required" })
+});
 
 function AddTransactionForm({ onSubmit, onCancel }) {
   const [transactionType, setTransactionType] = useState("expense");
   
   const form = useForm({
+    resolver: zodResolver(transactionSchema),
     defaultValues: {
       name: "",
       amount: "",
@@ -68,6 +78,7 @@ function AddTransactionForm({ onSubmit, onCancel }) {
         </div>
         
         <FormField
+          control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
@@ -81,6 +92,7 @@ function AddTransactionForm({ onSubmit, onCancel }) {
         />
         
         <FormField
+          control={form.control}
           name="amount"
           render={({ field }) => (
             <FormItem>
@@ -94,6 +106,7 @@ function AddTransactionForm({ onSubmit, onCancel }) {
         />
         
         <FormField
+          control={form.control}
           name="category"
           render={({ field }) => (
             <FormItem>
@@ -124,6 +137,7 @@ function AddTransactionForm({ onSubmit, onCancel }) {
         />
         
         <FormField
+          control={form.control}
           name="date"
           render={({ field }) => (
             <FormItem>

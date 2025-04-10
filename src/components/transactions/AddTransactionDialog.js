@@ -17,7 +17,6 @@ function AddTransactionDialog() {
 
   const handleSubmit = (data) => {
     // Here, you would typically save the transaction to your database
-    // For now, we'll just log it and show a success message
     console.log("New transaction:", data);
     
     toast.success("Transaction added successfully!");
