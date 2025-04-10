@@ -9,7 +9,7 @@ import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
 import Advisor from "./pages/Advisor";
 import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
+import NotFound from "./pages/NotFound.tsx"; // Updated import to use the .tsx file
 
 const queryClient = new QueryClient();
 
