@@ -57,11 +57,6 @@ export function BudgetProgress() {
           {budgetCategories.map((category) => {
             const percentage = Math.round((category.spent / category.budget) * 100);
             const isOverBudget = category.spent > category.budget;
-            const progressColor = isOverBudget 
-              ? "bg-finance-red" 
-              : percentage > 80 
-                ? "bg-finance-yellow" 
-                : "bg-finance-green";
             
             return (
               <div key={category.id} className="space-y-2">
@@ -76,10 +71,8 @@ export function BudgetProgress() {
                 </div>
                 <Progress 
                   value={Math.min(percentage, 100)} 
-                  className={cn(
-                    isOverBudget ? "bg-finance-red/20" : "",
-                    progressColor
-                  )}
+                  className={isOverBudget ? "bg-finance-red/20" : ""}
+                  indicatorClassName={isOverBudget ? "bg-finance-red" : percentage > 80 ? "bg-finance-yellow" : "bg-finance-green"} 
                 />
               </div>
             );

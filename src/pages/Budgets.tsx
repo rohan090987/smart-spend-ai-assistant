@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import Layout from "@/components/layout/Layout";
 import { 
   Card, 
@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
 import { 
   ShoppingBag, 
   Coffee, 
@@ -21,36 +20,9 @@ import {
   Plus,
   GanttChart,
   Edit,
-  Trash2,
-  X
+  Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  Dialog,
-  DialogContent, 
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from "@/components/ui/alert-dialog";
 
 interface Budget {
   id: string;
@@ -62,7 +34,7 @@ interface Budget {
 }
 
 // Mock budget data
-const initialBudgets: Budget[] = [
+const budgets: Budget[] = [
   {
     id: "b1",
     name: "Groceries",
@@ -113,17 +85,6 @@ const initialBudgets: Budget[] = [
   }
 ];
 
-const categoryColors: Record<string, string> = {
-  shopping: "#3B82F6",
-  dining: "#EF4444",
-  housing: "#10B981",
-  transportation: "#F59E0B",
-  utilities: "#8B5CF6",
-  entertainment: "#EC4899",
-  income: "#059669",
-  food: "#6366F1",
-};
-
 const getCategoryIcon = (category: string) => {
   switch (category) {
     case "shopping":
@@ -142,106 +103,6 @@ const getCategoryIcon = (category: string) => {
 };
 
 const Budgets = () => {
-  const [budgets, setBudgets] = useState<Budget[]>(initialBudgets);
-  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [deletingBudgetId, setDeletingBudgetId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "shopping",
-    budget: 0
-  });
-
-  const handleOpenCreate = () => {
-    setFormData({
-      name: "",
-      category: "shopping",
-      budget: 0
-    });
-    setIsCreateDialogOpen(true);
-  };
-
-  const handleOpenEdit = (budget: Budget) => {
-    setEditingBudget(budget);
-    setFormData({
-      name: budget.name,
-      category: budget.category,
-      budget: budget.budget
-    });
-    setIsEditDialogOpen(true);
-  };
-
-  const handleOpenDelete = (id: string) => {
-    setDeletingBudgetId(id);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === "budget" ? parseFloat(value) || 0 : value
-    }));
-  };
-
-  const handleSelectChange = (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      category: value
-    }));
-  };
-
-  const handleCreateBudget = () => {
-    if (!formData.name || formData.budget <= 0) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    const newBudget: Budget = {
-      id: `b${Date.now()}`,
-      name: formData.name,
-      category: formData.category,
-      spent: 0,
-      budget: formData.budget,
-      color: categoryColors[formData.category] || "#3B82F6"
-    };
-
-    setBudgets(prev => [...prev, newBudget]);
-    setIsCreateDialogOpen(false);
-    toast.success("Budget created successfully");
-  };
-
-  const handleEditBudget = () => {
-    if (!editingBudget || !formData.name || formData.budget <= 0) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    setBudgets(prev => prev.map(budget => 
-      budget.id === editingBudget.id 
-        ? { 
-            ...budget, 
-            name: formData.name,
-            category: formData.category,
-            budget: formData.budget,
-            color: categoryColors[formData.category] || budget.color
-          } 
-        : budget
-    ));
-    
-    setIsEditDialogOpen(false);
-    setEditingBudget(null);
-    toast.success("Budget updated successfully");
-  };
-
-  const handleDeleteBudget = () => {
-    if (!deletingBudgetId) return;
-    
-    setBudgets(prev => prev.filter(budget => budget.id !== deletingBudgetId));
-    setDeletingBudgetId(null);
-    toast.success("Budget deleted successfully");
-  };
-
   return (
     <Layout>
       <div className="flex items-center justify-between mb-6">
@@ -251,7 +112,7 @@ const Budgets = () => {
             Set and track your spending limits
           </p>
         </div>
-        <Button onClick={handleOpenCreate}>
+        <Button>
           <Plus className="mr-2 h-4 w-4" />
           Create Budget
         </Button>
@@ -316,21 +177,11 @@ const Budgets = () => {
               </CardContent>
               <CardFooter className="pt-1">
                 <div className="flex gap-2 w-full">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => handleOpenEdit(budget)}
-                  >
+                  <Button variant="outline" size="sm" className="flex-1">
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-finance-red hover:text-destructive hover:border-destructive"
-                    onClick={() => handleOpenDelete(budget.id)}
-                  >
+                  <Button variant="outline" size="sm" className="text-finance-red hover:text-destructive hover:border-destructive">
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
@@ -340,151 +191,6 @@ const Budgets = () => {
           );
         })}
       </div>
-
-      {/* Create Budget Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Budget</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">Budget Name</label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="e.g., Groceries"
-                value={formData.name}
-                onChange={handleInputChange}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="category" className="text-sm font-medium">Category</label>
-              <Select
-                value={formData.category}
-                onValueChange={handleSelectChange}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="shopping">Shopping</SelectItem>
-                  <SelectItem value="food">Food</SelectItem>
-                  <SelectItem value="dining">Dining</SelectItem>
-                  <SelectItem value="housing">Housing</SelectItem>
-                  <SelectItem value="transportation">Transportation</SelectItem>
-                  <SelectItem value="utilities">Utilities</SelectItem>
-                  <SelectItem value="entertainment">Entertainment</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="budget" className="text-sm font-medium">Monthly Limit ($)</label>
-              <Input
-                id="budget"
-                name="budget"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={formData.budget || ""}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={handleCreateBudget}>Create Budget</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Budget Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Budget</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <label htmlFor="edit-name" className="text-sm font-medium">Budget Name</label>
-              <Input
-                id="edit-name"
-                name="name"
-                placeholder="e.g., Groceries"
-                value={formData.name}
-                onChange={handleInputChange}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="edit-category" className="text-sm font-medium">Category</label>
-              <Select
-                value={formData.category}
-                onValueChange={handleSelectChange}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="shopping">Shopping</SelectItem>
-                  <SelectItem value="food">Food</SelectItem>
-                  <SelectItem value="dining">Dining</SelectItem>
-                  <SelectItem value="housing">Housing</SelectItem>
-                  <SelectItem value="transportation">Transportation</SelectItem>
-                  <SelectItem value="utilities">Utilities</SelectItem>
-                  <SelectItem value="entertainment">Entertainment</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="edit-budget" className="text-sm font-medium">Monthly Limit ($)</label>
-              <Input
-                id="edit-budget"
-                name="budget"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={formData.budget || ""}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={handleEditBudget}>Save Changes</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deletingBudgetId} onOpenChange={(open) => !open && setDeletingBudgetId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this budget. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteBudget}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Layout>
   );
 };
