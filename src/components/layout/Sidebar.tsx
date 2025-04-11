@@ -7,7 +7,6 @@ import {
   PieChart, 
   CreditCard, 
   Target, 
-  Settings, 
   LogOut,
   Sparkles
 } from "lucide-react";
@@ -77,12 +76,6 @@ export function Sidebar() {
               label="AI Advisor"
               href="/advisor"
               active={pathname === "/advisor"}
-            />
-            <SidebarItem 
-              icon={<Settings className="h-4 w-4" />}
-              label="Settings"
-              href="/settings"
-              active={pathname === "/settings"}
             />
           </nav>
         </div>
