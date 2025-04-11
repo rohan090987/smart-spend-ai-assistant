@@ -1,7 +1,6 @@
 
 import React from "react";
 import Layout from "@/components/layout/Layout";
-import AIAdvisor from "@/components/advisor/AIAdvisor";
 
 const Advisor = () => {
   return (
@@ -13,7 +12,11 @@ const Advisor = () => {
         </p>
       </div>
       
-      <AIAdvisor />
+      <div className="rounded-lg border bg-card text-card-foreground shadow">
+        <div className="p-6">
+          <p>AI Advisor content will go here.</p>
+        </div>
+      </div>
     </Layout>
   );
 };

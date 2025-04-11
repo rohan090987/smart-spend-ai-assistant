@@ -9,8 +9,7 @@ import {
   DollarSign, 
   CreditCard, 
   ArrowUpRight, 
-  ArrowDownRight,
-  ChevronRight
+  ArrowDownRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
