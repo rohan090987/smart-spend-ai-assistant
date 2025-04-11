@@ -1,6 +1,7 @@
 
 import React from "react";
 import Layout from "@/components/layout/Layout";
+import SettingsForm from "@/components/settings/SettingsForm";
 
 const Settings = () => {
   return (
@@ -12,11 +13,7 @@ const Settings = () => {
         </p>
       </div>
       
-      <div className="rounded-lg border bg-card text-card-foreground shadow">
-        <div className="p-6">
-          <p>Settings page content will go here.</p>
-        </div>
-      </div>
+      <SettingsForm />
     </Layout>
   );
 };

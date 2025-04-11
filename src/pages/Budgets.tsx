@@ -1,6 +1,7 @@
 
 import React from "react";
 import Layout from "@/components/layout/Layout";
+import BudgetManager from "@/components/budgets/BudgetManager";
 
 const Budgets = () => {
   return (
@@ -12,11 +13,7 @@ const Budgets = () => {
         </p>
       </div>
       
-      <div className="rounded-lg border bg-card text-card-foreground shadow">
-        <div className="p-6">
-          <p>Budgets page content will go here.</p>
-        </div>
-      </div>
+      <BudgetManager />
     </Layout>
   );
 };

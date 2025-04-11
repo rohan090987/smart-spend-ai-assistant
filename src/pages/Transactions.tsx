@@ -1,6 +1,7 @@
 
 import React from "react";
 import Layout from "@/components/layout/Layout";
+import TransactionList from "@/components/transactions/TransactionList";
 
 const Transactions = () => {
   return (
@@ -12,11 +13,7 @@ const Transactions = () => {
         </p>
       </div>
       
-      <div className="rounded-lg border bg-card text-card-foreground shadow">
-        <div className="p-6">
-          <p>Transactions page content will go here.</p>
-        </div>
-      </div>
+      <TransactionList />
     </Layout>
   );
 };
