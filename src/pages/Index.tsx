@@ -12,8 +12,11 @@ import {
   ArrowDownRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   return (
     <Layout>
       <div className="flex items-center justify-between mb-6">
@@ -24,7 +27,7 @@ const Index = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button>
+          <Button onClick={() => navigate("/transactions")}>
             Add Transaction
           </Button>
         </div>

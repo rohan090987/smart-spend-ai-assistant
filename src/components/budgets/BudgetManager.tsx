@@ -4,8 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Edit2, Trash2, DollarSign } from "lucide-react";
+import { Plus, Edit2, Trash2, DollarSign, Save } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from "@/components/ui/dialog";
 
 interface Budget {
   id: string;
@@ -59,13 +67,25 @@ const colorOptions = [
 
 const BudgetManager = () => {
   const [budgets, setBudgets] = useState<Budget[]>(initialBudgets);
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [currentBudget, setCurrentBudget] = useState<Budget | null>(null);
   const [newBudget, setNewBudget] = useState({
     category: "",
     amount: "",
+    spent: "0",
     color: colorOptions[0]
   });
+
+  const handleAddBudgetClick = () => {
+    setNewBudget({
+      category: "",
+      amount: "",
+      spent: "0",
+      color: colorOptions[0]
+    });
+    setIsAddDialogOpen(true);
+  };
 
   const handleAddBudget = () => {
     if (newBudget.category && newBudget.amount) {
@@ -73,47 +93,53 @@ const BudgetManager = () => {
         id: `b${Date.now()}`,
         category: newBudget.category,
         amount: parseFloat(newBudget.amount),
-        spent: 0,
+        spent: parseFloat(newBudget.spent) || 0,
         color: newBudget.color
       };
       
       setBudgets([...budgets, budget]);
-      setNewBudget({ category: "", amount: "", color: colorOptions[0] });
-      setIsAdding(false);
+      setIsAddDialogOpen(false);
+      setNewBudget({ category: "", amount: "", spent: "0", color: colorOptions[0] });
+      toast.success("Budget added successfully");
     }
   };
 
   const handleEditBudget = (budget: Budget) => {
-    setEditingId(budget.id);
+    setCurrentBudget(budget);
     setNewBudget({
       category: budget.category,
       amount: budget.amount.toString(),
+      spent: budget.spent.toString(),
       color: budget.color
     });
+    setIsEditDialogOpen(true);
   };
 
   const handleUpdateBudget = () => {
-    if (editingId && newBudget.category && newBudget.amount) {
+    if (currentBudget && newBudget.category && newBudget.amount) {
       const updatedBudgets = budgets.map(budget => 
-        budget.id === editingId 
+        budget.id === currentBudget.id 
           ? {
               ...budget,
               category: newBudget.category,
               amount: parseFloat(newBudget.amount),
+              spent: parseFloat(newBudget.spent) || 0,
               color: newBudget.color
             } 
           : budget
       );
       
       setBudgets(updatedBudgets);
-      setNewBudget({ category: "", amount: "", color: colorOptions[0] });
-      setEditingId(null);
+      setIsEditDialogOpen(false);
+      setCurrentBudget(null);
+      toast.success("Budget updated successfully");
     }
   };
 
   const handleDeleteBudget = (id: string) => {
     const updatedBudgets = budgets.filter(budget => budget.id !== id);
     setBudgets(updatedBudgets);
+    toast.success("Budget deleted successfully");
   };
 
   const calculateProgress = (spent: number, total: number) => {
@@ -124,80 +150,10 @@ const BudgetManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Monthly Budgets</h2>
-        {!isAdding && !editingId && (
-          <Button onClick={() => setIsAdding(true)} className="gap-1">
-            <Plus className="h-4 w-4" /> New Budget
-          </Button>
-        )}
+        <Button onClick={handleAddBudgetClick} className="gap-1">
+          <Plus className="h-4 w-4" /> New Budget
+        </Button>
       </div>
-
-      {(isAdding || editingId) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingId ? "Edit Budget" : "Create New Budget"}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
-                <Input
-                  id="category"
-                  value={newBudget.category}
-                  onChange={(e) => setNewBudget({ ...newBudget, category: e.target.value })}
-                  placeholder="e.g. Food & Groceries"
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="amount">Budget Amount</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="amount"
-                    type="number"
-                    value={newBudget.amount}
-                    onChange={(e) => setNewBudget({ ...newBudget, amount: e.target.value })}
-                    className="pl-8"
-                    placeholder="0.00"
-                  />
-                </div>
-              </div>
-              
-              <div className="grid gap-2">
-                <Label>Color</Label>
-                <div className="flex gap-2 flex-wrap">
-                  {colorOptions.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={`w-6 h-6 rounded-full ${color} ${
-                        newBudget.color === color ? "ring-2 ring-offset-2 ring-primary" : ""
-                      }`}
-                      onClick={() => setNewBudget({ ...newBudget, color })}
-                    />
-                  ))}
-                </div>
-              </div>
-              
-              <div className="flex gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsAdding(false);
-                    setEditingId(null);
-                    setNewBudget({ category: "", amount: "", color: colorOptions[0] });
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={editingId ? handleUpdateBudget : handleAddBudget}>
-                  {editingId ? "Update" : "Create"}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {budgets.map((budget) => {
@@ -245,6 +201,164 @@ const BudgetManager = () => {
           );
         })}
       </div>
+
+      {/* Add Budget Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Budget</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="category">Category</Label>
+              <Input
+                id="category"
+                value={newBudget.category}
+                onChange={(e) => setNewBudget({ ...newBudget, category: e.target.value })}
+                placeholder="e.g. Food & Groceries"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="amount">Budget Amount</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="amount"
+                  type="number"
+                  value={newBudget.amount}
+                  onChange={(e) => setNewBudget({ ...newBudget, amount: e.target.value })}
+                  className="pl-8"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="spent">Amount Spent (Optional)</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="spent"
+                  type="number"
+                  value={newBudget.spent}
+                  onChange={(e) => setNewBudget({ ...newBudget, spent: e.target.value })}
+                  className="pl-8"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label>Color</Label>
+              <div className="flex gap-2 flex-wrap">
+                {colorOptions.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-6 h-6 rounded-full ${color} ${
+                      newBudget.color === color ? "ring-2 ring-offset-2 ring-primary" : ""
+                    }`}
+                    onClick={() => setNewBudget({ ...newBudget, color })}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsAddDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleAddBudget}>
+                Create Budget
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Budget Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Budget</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-category">Category</Label>
+              <Input
+                id="edit-category"
+                value={newBudget.category}
+                onChange={(e) => setNewBudget({ ...newBudget, category: e.target.value })}
+                placeholder="e.g. Food & Groceries"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="edit-amount">Budget Amount</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="edit-amount"
+                  type="number"
+                  value={newBudget.amount}
+                  onChange={(e) => setNewBudget({ ...newBudget, amount: e.target.value })}
+                  className="pl-8"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="edit-spent">Amount Spent</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="edit-spent"
+                  type="number"
+                  value={newBudget.spent}
+                  onChange={(e) => setNewBudget({ ...newBudget, spent: e.target.value })}
+                  className="pl-8"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label>Color</Label>
+              <div className="flex gap-2 flex-wrap">
+                {colorOptions.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-6 h-6 rounded-full ${color} ${
+                      newBudget.color === color ? "ring-2 ring-offset-2 ring-primary" : ""
+                    }`}
+                    onClick={() => setNewBudget({ ...newBudget, color })}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateBudget}>
+                Update Budget
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
