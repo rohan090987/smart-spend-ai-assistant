@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ import { apiService, Goal } from "@/services/apiService";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchAIResponse } from "@/lib/ai";
 
-// Goal form schema
 const goalSchema = z.object({
   description: z.string().min(1, "Goal description is required"),
   target_amount: z.string().transform((val) => Number(val)),
@@ -26,7 +24,6 @@ const goalSchema = z.object({
   deadline: z.string().min(1, "Deadline is required"),
 });
 
-// Categories for goals
 const goalCategories = [
   "Savings", 
   "Debt Payoff", 
@@ -59,7 +56,6 @@ const GoalTracker = () => {
     }
   });
 
-  // Fetch goals
   const { 
     data: goals = [], 
     isLoading,
@@ -69,7 +65,6 @@ const GoalTracker = () => {
     queryFn: apiService.getGoals
   });
 
-  // Add goal mutation
   const addGoalMutation = useMutation({
     mutationFn: apiService.addGoal,
     onSuccess: () => {
@@ -83,7 +78,6 @@ const GoalTracker = () => {
     }
   });
 
-  // Update goal progress
   const updateGoalMutation = useMutation({
     mutationFn: ({ id, update }: { id: number, update: Pick<Goal, 'current_amount' | 'status'> }) =>
       apiService.updateGoal(id, update),
@@ -96,18 +90,16 @@ const GoalTracker = () => {
   const handleAddGoal = (data) => {
     addGoalMutation.mutate({
       description: data.description,
-      targetAmount: Number(data.target_amount),
+      target_amount: Number(data.target_amount),
       category: data.category,
       deadline: data.deadline
     });
   };
 
-  // Calculate progress percentage
   const calculateProgress = (current: number, target: number) => {
     return Math.min(Math.round((current / target) * 100), 100);
   };
 
-  // Update goal progress
   const handleUpdateProgress = (goal: Goal, newAmount: number) => {
     if (!goal.id) return;
     
@@ -123,7 +115,6 @@ const GoalTracker = () => {
     });
   };
 
-  // Analyze goal with AI
   const analyzeGoal = async () => {
     if (!goalDescription.trim()) {
       toast.error("Please enter a goal description");
@@ -153,19 +144,15 @@ const GoalTracker = () => {
     }
   };
 
-  // Apply AI analysis to the form
   const applyAnalysis = () => {
     if (aiAnalysis) {
-      // Extract category using regex patterns
       const categoryMatch = aiAnalysis.match(/categorization:?\s*([\w\s]+)/i);
       const category = categoryMatch?.[1]?.trim();
       
-      // Find the closest matching category
       const bestCategory = goalCategories.find(c => 
         category?.toLowerCase().includes(c.toLowerCase())
       ) || goalCategories[0];
       
-      // Extract SMART goal
       const smartGoalMatch = aiAnalysis.match(/SMART goal[^:]*:?\s*([^.]+)/i);
       const smartGoal = smartGoalMatch?.[1]?.trim() || goalDescription;
       
@@ -314,7 +301,6 @@ const GoalTracker = () => {
         </div>
       )}
 
-      {/* Add Goal Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -411,7 +397,6 @@ const GoalTracker = () => {
         </DialogContent>
       </Dialog>
 
-      {/* AI Dialog */}
       <Dialog open={isAiDialogOpen} onOpenChange={setIsAiDialogOpen}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
