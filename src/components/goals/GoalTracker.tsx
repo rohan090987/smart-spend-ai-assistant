@@ -1,5 +1,6 @@
+
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -167,10 +168,6 @@ const GoalTracker = () => {
     return <div className="flex justify-center p-8">Loading goals...</div>;
   }
 
-  if (error) {
-    return <div className="text-red-500 p-8">Error loading goals</div>;
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -189,7 +186,14 @@ const GoalTracker = () => {
         </div>
       </div>
 
-      {goals.length === 0 ? (
+      {error ? (
+        <Card className="p-8 text-center">
+          <p className="text-red-500 mb-4">Error loading goals. Please try again later.</p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['goals'] })} variant="outline">
+            Retry
+          </Button>
+        </Card>
+      ) : goals.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-muted-foreground mb-4">No goals found. Create your first financial goal to get started.</p>
           <Button onClick={() => setIsAddDialogOpen(true)} variant="outline" className="gap-1">
@@ -253,11 +257,6 @@ const GoalTracker = () => {
                         <Progress 
                           value={progress} 
                           className="h-2"
-                          indicatorClassName={
-                            isCompleted ? "bg-green-500" : 
-                            isOverdue ? "bg-red-500" : 
-                            "bg-blue-500"
-                          }
                         />
                         
                         {!isCompleted && (

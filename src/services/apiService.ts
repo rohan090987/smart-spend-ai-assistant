@@ -1,5 +1,15 @@
 
-const API_BASE = "http://localhost:3001/api";
+// Determine the appropriate API base URL based on environment
+const getApiBaseUrl = () => {
+  // Check if we're in development or production
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return "http://localhost:3001/api";
+  }
+  // For deployed environments, use relative path
+  return "/api";
+};
+
+const API_BASE = getApiBaseUrl();
 
 export interface Transaction {
   id?: number;
@@ -31,9 +41,14 @@ export interface Goal {
 export const apiService = {
   // Transaction APIs
   getTransactions: async (): Promise<Transaction[]> => {
-    const res = await fetch(`${API_BASE}/transactions`);
-    if (!res.ok) throw new Error('Failed to fetch transactions');
-    return res.json();
+    try {
+      const res = await fetch(`${API_BASE}/transactions`);
+      if (!res.ok) throw new Error('Failed to fetch transactions');
+      return res.json();
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      return [];
+    }
   },
   
   addTransaction: async (tx: Transaction): Promise<{ id: number }> => {
@@ -55,9 +70,14 @@ export const apiService = {
 
   // Budget APIs
   getBudgets: async (): Promise<Budget[]> => {
-    const res = await fetch(`${API_BASE}/budgets`);
-    if (!res.ok) throw new Error('Failed to fetch budgets');
-    return res.json();
+    try {
+      const res = await fetch(`${API_BASE}/budgets`);
+      if (!res.ok) throw new Error('Failed to fetch budgets');
+      return res.json();
+    } catch (error) {
+      console.error("Error fetching budgets:", error);
+      return [];
+    }
   },
   
   addBudget: async (budget: Budget): Promise<void> => {
@@ -88,9 +108,14 @@ export const apiService = {
   
   // Goals APIs
   getGoals: async (): Promise<Goal[]> => {
-    const res = await fetch(`${API_BASE}/goals`);
-    if (!res.ok) throw new Error('Failed to fetch goals');
-    return res.json();
+    try {
+      const res = await fetch(`${API_BASE}/goals`);
+      if (!res.ok) throw new Error('Failed to fetch goals');
+      return res.json();
+    } catch (error) {
+      console.error("Error fetching goals:", error);
+      return [];
+    }
   },
   
   addGoal: async (goal: Omit<Goal, 'id' | 'current_amount' | 'status' | 'created_at'>): Promise<void> => {
