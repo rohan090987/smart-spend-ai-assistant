@@ -5,7 +5,7 @@ const getApiBaseUrl = () => {
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return "http://localhost:3001/api";
   }
-  // For deployed environments, use absolute path
+  // For deployed environments, use relative path instead of absolute
   return "/api";
 };
 
@@ -64,16 +64,9 @@ export const apiService = {
         throw new Error(`Failed to fetch transactions: ${res.status}`);
       }
       
-      const contentType = res.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const data = await res.json();
-        console.log("Transactions data received:", data);
-        return data;
-      } else {
-        const text = await res.text();
-        console.error("Non-JSON response received:", text.substring(0, 100) + '...');
-        throw new Error('Invalid response format');
-      }
+      const data = await res.json();
+      console.log("Transactions data received:", data);
+      return data;
     } catch (error) {
       console.error("Error fetching transactions:", error);
       throw error;
@@ -123,16 +116,9 @@ export const apiService = {
         throw new Error(`Failed to fetch budgets: ${res.status}`);
       }
       
-      const contentType = res.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const data = await res.json();
-        console.log("Budgets data received:", data);
-        return data;
-      } else {
-        const text = await res.text();
-        console.error("Non-JSON response received:", text.substring(0, 100) + '...');
-        throw new Error('Invalid response format');
-      }
+      const data = await res.json();
+      console.log("Budgets data received:", data);
+      return data;
     } catch (error) {
       console.error("Error fetching budgets:", error);
       throw error;
@@ -199,16 +185,9 @@ export const apiService = {
         throw new Error(`Failed to fetch goals: ${res.status}`);
       }
       
-      const contentType = res.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const data = await res.json();
-        console.log("Goals data received:", data);
-        return data;
-      } else {
-        const text = await res.text();
-        console.error("Non-JSON response received:", text.substring(0, 100) + '...');
-        throw new Error('Invalid response format');
-      }
+      const data = await res.json();
+      console.log("Goals data received:", data);
+      return data;
     } catch (error) {
       console.error("Error fetching goals:", error);
       throw error;

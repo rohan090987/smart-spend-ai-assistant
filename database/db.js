@@ -36,7 +36,8 @@ export const initDB = async () => {
     // Open the database connection
     const db = await open({
       filename: dbPath,
-      driver: sqlite3.Database
+      driver: sqlite3.Database,
+      mode: sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE
     });
     
     console.log('Database connection opened');
@@ -47,6 +48,8 @@ export const initDB = async () => {
 
     // Create tables if they don't exist
     console.log('Creating tables if they don\'t exist...');
+    
+    // Create transactions table
     await db.exec(`
       CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,7 +58,11 @@ export const initDB = async () => {
         category TEXT,
         date TEXT DEFAULT CURRENT_TIMESTAMP
       );
-      
+    `);
+    console.log('Transactions table created or exists');
+    
+    // Create budgets table
+    await db.exec(`
       CREATE TABLE IF NOT EXISTS budgets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         category TEXT NOT NULL UNIQUE,
@@ -63,7 +70,11 @@ export const initDB = async () => {
         spent REAL DEFAULT 0,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
-      
+    `);
+    console.log('Budgets table created or exists');
+    
+    // Create goals table
+    await db.exec(`
       CREATE TABLE IF NOT EXISTS goals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         description TEXT NOT NULL,
@@ -75,6 +86,7 @@ export const initDB = async () => {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    console.log('Goals table created or exists');
 
     console.log('Database schema initialized successfully');
     
