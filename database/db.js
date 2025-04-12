@@ -1,3 +1,4 @@
+
 // database/db.js
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
@@ -25,8 +26,20 @@ export const initDB = async () => {
     
     CREATE TABLE IF NOT EXISTS budgets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      category TEXT NOT NULL,
+      category TEXT NOT NULL UNIQUE,
       amount REAL NOT NULL,
+      spent REAL DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE TABLE IF NOT EXISTS goals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      description TEXT NOT NULL,
+      target_amount REAL NOT NULL,
+      current_amount REAL DEFAULT 0,
+      category TEXT,
+      deadline TEXT,
+      status TEXT DEFAULT 'In Progress',
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);

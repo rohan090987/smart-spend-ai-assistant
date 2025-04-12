@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, ArrowUpDown, ArrowUp, ArrowDown, Filter, Edit2, Trash2, X } from "lucide-react";
+import { Search, Plus, ArrowUpDown, ArrowUp, ArrowDown, Edit2, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -20,91 +20,77 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiService, Transaction } from "@/services/apiService";
 
-interface Transaction {
-  id: string;
-  description: string;
-  category: string;
-  amount: number;
-  date: Date;
-}
-
-const categories = ["Food", "Entertainment", "Utilities", "Transportation", "Income", "Shopping", "Other"];
-
-// Form schema
 const transactionSchema = z.object({
-  description: z.string().min(1, "Description is required"),
+  name: z.string().min(1, "Description is required"),
   category: z.string().min(1, "Category is required"),
   amount: z.string().transform((val) => Number(val)),
-  date: z.string().transform((val) => new Date(val))
+  date: z.string().transform((val) => val)
 });
 
-// Sample transaction data
-const sampleTransactions = [
-  { 
-    id: "t1", 
-    description: "Grocery Shopping",
-    category: "Food",
-    amount: -120.50,
-    date: new Date("2025-04-08"),
-  },
-  {
-    id: "t2",
-    description: "Salary Deposit",
-    category: "Income",
-    amount: 2500.00,
-    date: new Date("2025-04-05"),
-  },
-  {
-    id: "t3",
-    description: "Electric Bill",
-    category: "Utilities",
-    amount: -95.20,
-    date: new Date("2025-04-03"),
-  },
-  {
-    id: "t4",
-    description: "Restaurant Dinner",
-    category: "Food",
-    amount: -65.30,
-    date: new Date("2025-04-01"),
-  },
-  {
-    id: "t5",
-    description: "Freelance Payment",
-    category: "Income",
-    amount: 350.00,
-    date: new Date("2025-03-29"),
-  },
-  {
-    id: "t6",
-    description: "Movie Tickets",
-    category: "Entertainment",
-    amount: -28.50,
-    date: new Date("2025-03-28"),
-  },
-  {
-    id: "t7",
-    description: "Gas Station",
-    category: "Transportation",
-    amount: -45.00,
-    date: new Date("2025-03-27"),
-  },
-];
-
 const TransactionList = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>(sampleTransactions);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
   
+  const queryClient = useQueryClient();
+
+  // Get available categories from budgets
+  const { data: budgets = [] } = useQuery({
+    queryKey: ['budgets'],
+    queryFn: apiService.getBudgets
+  });
+  
+  // Extract unique categories
+  const categories = Array.from(new Set(budgets.map(budget => budget.category)));
+  
+  // Fetch transactions
+  const { 
+    data: transactions = [], 
+    isLoading,
+    error 
+  } = useQuery({
+    queryKey: ['transactions'],
+    queryFn: apiService.getTransactions
+  });
+  
+  // Add transaction mutation
+  const addTransactionMutation = useMutation({
+    mutationFn: apiService.addTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      toast.success("Transaction added successfully");
+      setIsAddDialogOpen(false);
+      form.reset();
+    },
+    onError: () => {
+      toast.error("Failed to add transaction");
+    }
+  });
+  
+  // Delete transaction mutation
+  const deleteTransactionMutation = useMutation({
+    mutationFn: apiService.deleteTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      toast.success("Transaction deleted successfully");
+    },
+    onError: () => {
+      toast.error("Failed to delete transaction");
+    }
+  });
+
   const form = useForm({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
-      description: "",
-      category: "Food",
+      name: "",
+      category: categories.length > 0 ? categories[0] : "",
       amount: "0",
       date: new Date().toISOString().split('T')[0]
     }
@@ -113,8 +99,8 @@ const TransactionList = () => {
   const editForm = useForm({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
-      description: "",
-      category: "Food",
+      name: "",
+      category: categories.length > 0 ? categories[0] : "",
       amount: "0",
       date: new Date().toISOString().split('T')[0]
     }
@@ -122,18 +108,18 @@ const TransactionList = () => {
 
   // Filter transactions based on search term
   const filteredTransactions = transactions.filter(transaction => 
-    transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    transaction.category.toLowerCase().includes(searchTerm.toLowerCase())
+    transaction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    transaction.category?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Sort transactions by date
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
     if (sortDirection === "asc") {
-      return a.date.getTime() - b.date.getTime();
+      return new Date(a.date || "").getTime() - new Date(b.date || "").getTime();
     } else if (sortDirection === "desc") {
-      return b.date.getTime() - a.date.getTime();
+      return new Date(b.date || "").getTime() - new Date(a.date || "").getTime();
     }
-    return b.date.getTime() - a.date.getTime(); // Default: newest first
+    return new Date(b.date || "").getTime() - new Date(a.date || "").getTime(); // Default: newest first
   });
 
   const handleSort = () => {
@@ -147,54 +133,60 @@ const TransactionList = () => {
   };
 
   const handleAddTransaction = (data) => {
-    const newTransaction: Transaction = {
-      id: `t${Date.now()}`,
-      description: data.description,
+    addTransactionMutation.mutate({
+      name: data.name,
       category: data.category,
       amount: Number(data.amount),
-      date: new Date(data.date)
-    };
-    
-    setTransactions([...transactions, newTransaction]);
-    setIsAddDialogOpen(false);
-    form.reset();
-    toast.success("Transaction added successfully");
+      date: data.date
+    });
   };
 
   const handleEditTransaction = (transaction: Transaction) => {
     setCurrentTransaction(transaction);
     editForm.reset({
-      description: transaction.description,
+      name: transaction.name,
       category: transaction.category,
       amount: transaction.amount.toString(),
-      date: transaction.date.toISOString().split('T')[0]
+      date: transaction.date ? new Date(transaction.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
     });
     setIsEditDialogOpen(true);
   };
 
   const submitEditTransaction = (data) => {
-    if (!currentTransaction) return;
+    if (!currentTransaction?.id) return;
     
-    const updatedTransactions = transactions.map(t => 
-      t.id === currentTransaction.id ? {
-        ...t,
-        description: data.description,
-        category: data.category,
-        amount: Number(data.amount),
-        date: new Date(data.date)
-      } : t
-    );
+    const updatedTransaction = {
+      name: data.name,
+      category: data.category,
+      amount: Number(data.amount),
+      date: data.date
+    };
     
-    setTransactions(updatedTransactions);
-    setIsEditDialogOpen(false);
-    setCurrentTransaction(null);
-    toast.success("Transaction updated successfully");
+    // Since we don't have a direct editTransaction endpoint, we'll delete and re-add
+    deleteTransactionMutation.mutate(currentTransaction.id, {
+      onSuccess: () => {
+        addTransactionMutation.mutate(updatedTransaction, {
+          onSuccess: () => {
+            setIsEditDialogOpen(false);
+            setCurrentTransaction(null);
+            toast.success("Transaction updated successfully");
+          }
+        });
+      }
+    });
   };
 
-  const handleDeleteTransaction = (id: string) => {
-    setTransactions(transactions.filter(t => t.id !== id));
-    toast.success("Transaction deleted successfully");
+  const handleDeleteTransaction = (id: number) => {
+    deleteTransactionMutation.mutate(id);
   };
+
+  if (isLoading) {
+    return <div className="flex justify-center p-8">Loading transactions...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 p-8">Error loading transactions</div>;
+  }
 
   return (
     <Card>
@@ -220,10 +212,6 @@ const TransactionList = () => {
                 <ArrowUpDown className="h-4 w-4" />
               )}
               Date
-            </Button>
-            <Button variant="outline" className="gap-1">
-              <Filter className="h-4 w-4" />
-              Filter
             </Button>
             <Button className="gap-1" onClick={() => setIsAddDialogOpen(true)}>
               <Plus className="h-4 w-4" />
@@ -253,9 +241,9 @@ const TransactionList = () => {
             ) : (
               sortedTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
-                  <TableCell>{transaction.description}</TableCell>
+                  <TableCell>{transaction.name}</TableCell>
                   <TableCell>{transaction.category}</TableCell>
-                  <TableCell>{transaction.date.toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(transaction.date || "").toLocaleDateString()}</TableCell>
                   <TableCell className={`text-right ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
                     {transaction.amount > 0 ? "+" : ""}{transaction.amount.toFixed(2)}
                   </TableCell>
@@ -271,7 +259,7 @@ const TransactionList = () => {
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => handleDeleteTransaction(transaction.id)}
+                        onClick={() => transaction.id && handleDeleteTransaction(transaction.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -295,7 +283,7 @@ const TransactionList = () => {
             <form onSubmit={form.handleSubmit(handleAddTransaction)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="description"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
@@ -323,11 +311,15 @@ const TransactionList = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
+                        {categories.length > 0 ? (
+                          categories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="Other">Other</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -340,7 +332,7 @@ const TransactionList = () => {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount</FormLabel>
+                    <FormLabel>Amount (negative for expenses)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
@@ -372,7 +364,9 @@ const TransactionList = () => {
                 <Button variant="outline" type="button" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">Add Transaction</Button>
+                <Button type="submit" disabled={addTransactionMutation.isPending}>
+                  {addTransactionMutation.isPending ? 'Adding...' : 'Add Transaction'}
+                </Button>
               </DialogFooter>
             </form>
           </Form>
@@ -390,7 +384,7 @@ const TransactionList = () => {
             <form onSubmit={editForm.handleSubmit(submitEditTransaction)} className="space-y-4">
               <FormField
                 control={editForm.control}
-                name="description"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
@@ -418,11 +412,15 @@ const TransactionList = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
+                        {categories.length > 0 ? (
+                          categories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="Other">Other</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -435,7 +433,7 @@ const TransactionList = () => {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount</FormLabel>
+                    <FormLabel>Amount (negative for expenses)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
@@ -467,7 +465,9 @@ const TransactionList = () => {
                 <Button variant="outline" type="button" onClick={() => setIsEditDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">Save Changes</Button>
+                <Button type="submit" disabled={addTransactionMutation.isPending || deleteTransactionMutation.isPending}>
+                  Save Changes
+                </Button>
               </DialogFooter>
             </form>
           </Form>

@@ -8,7 +8,8 @@ import {
   CreditCard, 
   Target, 
   LogOut,
-  Sparkles
+  Sparkles,
+  Flag
 } from "lucide-react";
 
 interface SidebarItemProps {
@@ -70,6 +71,12 @@ export function Sidebar() {
               label="Budgets"
               href="/budgets"
               active={pathname === "/budgets"}
+            />
+            <SidebarItem 
+              icon={<Flag className="h-4 w-4" />}
+              label="Goals"
+              href="/goals"
+              active={pathname === "/goals"}
             />
             <SidebarItem 
               icon={<Sparkles className="h-4 w-4" />}

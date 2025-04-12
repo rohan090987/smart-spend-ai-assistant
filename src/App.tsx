@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
+import Goals from "./pages/Goals";
 import Advisor from "./pages/Advisor";
 import NotFound from "./pages/NotFound";
 
@@ -18,6 +19,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/budgets" element={<Budgets />} />
+          <Route path="/goals" element={<Goals />} />
           <Route path="/advisor" element={<Advisor />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
