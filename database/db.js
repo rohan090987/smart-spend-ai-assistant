@@ -22,13 +22,19 @@ ensureDirExists(dirname(dbPath));
 
 export const initDB = async () => {
   try {
+    console.log('Initializing database at:', dbPath);
+    
+    // Open the database connection
     const db = await open({
       filename: dbPath,
       driver: sqlite3.Database
     });
+    
+    console.log('Database connection opened');
 
     // Enable foreign keys
     await db.exec('PRAGMA foreign_keys = ON;');
+    console.log('Foreign keys enabled');
 
     // Create tables if they don't exist
     await db.exec(`
@@ -60,7 +66,25 @@ export const initDB = async () => {
       );
     `);
 
-    console.log('Database schema initialized successfully.');
+    console.log('Database schema initialized successfully');
+    
+    // Check if tables exist by querying them
+    const tableCheck = async (tableName) => {
+      try {
+        const result = await db.all(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`, [tableName]);
+        return result.length > 0;
+      } catch (err) {
+        console.error(`Error checking table ${tableName}:`, err);
+        return false;
+      }
+    };
+    
+    const transactionsExist = await tableCheck('transactions');
+    const budgetsExist = await tableCheck('budgets');
+    const goalsExist = await tableCheck('goals');
+    
+    console.log('Table check results:', { transactionsExist, budgetsExist, goalsExist });
+    
     return db;
   } catch (error) {
     console.error('Error initializing database:', error);
