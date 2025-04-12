@@ -11,6 +11,10 @@ const getApiBaseUrl = () => {
 
 const API_BASE = getApiBaseUrl();
 
+// Debug information
+console.log('API_BASE URL:', API_BASE);
+console.log('Current hostname:', window.location.hostname);
+
 export interface Transaction {
   id?: number;
   name: string;
@@ -38,19 +42,38 @@ export interface Goal {
   created_at?: string;
 }
 
+// Helper function to handle API errors
+const handleApiError = (response: Response) => {
+  if (!response.ok) {
+    const error = new Error(`API error: ${response.status} ${response.statusText}`);
+    console.error('API error response:', response);
+    throw error;
+  }
+  return response;
+};
+
 export const apiService = {
   // Transaction APIs
   getTransactions: async (): Promise<Transaction[]> => {
     try {
       console.log("Fetching transactions from:", `${API_BASE}/transactions`);
       const res = await fetch(`${API_BASE}/transactions`);
+      
       if (!res.ok) {
         console.error("Error response:", res.status, res.statusText);
         throw new Error(`Failed to fetch transactions: ${res.status}`);
       }
-      const data = await res.json();
-      console.log("Transactions data received:", data);
-      return data;
+      
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        console.log("Transactions data received:", data);
+        return data;
+      } else {
+        const text = await res.text();
+        console.error("Non-JSON response received:", text.substring(0, 100) + '...');
+        throw new Error('Invalid response format');
+      }
     } catch (error) {
       console.error("Error fetching transactions:", error);
       throw error;
@@ -65,7 +88,8 @@ export const apiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tx),
       });
-      if (!res.ok) throw new Error(`Failed to add transaction: ${res.status}`);
+      
+      handleApiError(res);
       return res.json();
     } catch (error) {
       console.error("Error adding transaction:", error);
@@ -79,7 +103,9 @@ export const apiService = {
       const res = await fetch(`${API_BASE}/transactions/${id}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error(`Failed to delete transaction: ${res.status}`);
+      
+      handleApiError(res);
+      return;
     } catch (error) {
       console.error("Error deleting transaction:", error);
       throw error;
@@ -91,13 +117,22 @@ export const apiService = {
     try {
       console.log("Fetching budgets from:", `${API_BASE}/budgets`);
       const res = await fetch(`${API_BASE}/budgets`);
+      
       if (!res.ok) {
         console.error("Error response:", res.status, res.statusText);
         throw new Error(`Failed to fetch budgets: ${res.status}`);
       }
-      const data = await res.json();
-      console.log("Budgets data received:", data);
-      return data;
+      
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        console.log("Budgets data received:", data);
+        return data;
+      } else {
+        const text = await res.text();
+        console.error("Non-JSON response received:", text.substring(0, 100) + '...');
+        throw new Error('Invalid response format');
+      }
     } catch (error) {
       console.error("Error fetching budgets:", error);
       throw error;
@@ -112,7 +147,8 @@ export const apiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(budget),
       });
-      if (!res.ok) throw new Error(`Failed to add budget: ${res.status}`);
+      
+      handleApiError(res);
       return res.json();
     } catch (error) {
       console.error("Error adding budget:", error);
@@ -128,7 +164,9 @@ export const apiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(budget),
       });
-      if (!res.ok) throw new Error(`Failed to update budget: ${res.status}`);
+      
+      handleApiError(res);
+      return;
     } catch (error) {
       console.error("Error updating budget:", error);
       throw error;
@@ -141,7 +179,9 @@ export const apiService = {
       const res = await fetch(`${API_BASE}/budgets/${id}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error(`Failed to delete budget: ${res.status}`);
+      
+      handleApiError(res);
+      return;
     } catch (error) {
       console.error("Error deleting budget:", error);
       throw error;
@@ -153,13 +193,22 @@ export const apiService = {
     try {
       console.log("Fetching goals from:", `${API_BASE}/goals`);
       const res = await fetch(`${API_BASE}/goals`);
+      
       if (!res.ok) {
         console.error("Error response:", res.status, res.statusText);
         throw new Error(`Failed to fetch goals: ${res.status}`);
       }
-      const data = await res.json();
-      console.log("Goals data received:", data);
-      return data;
+      
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        console.log("Goals data received:", data);
+        return data;
+      } else {
+        const text = await res.text();
+        console.error("Non-JSON response received:", text.substring(0, 100) + '...');
+        throw new Error('Invalid response format');
+      }
     } catch (error) {
       console.error("Error fetching goals:", error);
       throw error;
@@ -174,7 +223,8 @@ export const apiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(goal),
       });
-      if (!res.ok) throw new Error(`Failed to add goal: ${res.status}`);
+      
+      handleApiError(res);
       return res.json();
     } catch (error) {
       console.error("Error adding goal:", error);
@@ -190,7 +240,9 @@ export const apiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(update),
       });
-      if (!res.ok) throw new Error(`Failed to update goal: ${res.status}`);
+      
+      handleApiError(res);
+      return;
     } catch (error) {
       console.error("Error updating goal:", error);
       throw error;

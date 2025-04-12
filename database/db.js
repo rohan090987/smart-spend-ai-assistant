@@ -13,16 +13,25 @@ const dbPath = join(__dirname, 'finance.db');
 
 // Ensure the database directory exists
 const ensureDirExists = (dirPath) => {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+      console.log(`Created directory: ${dirPath}`);
+    }
+  } catch (error) {
+    console.error(`Failed to create directory ${dirPath}:`, error);
+    throw error;
   }
 };
 
-ensureDirExists(dirname(dbPath));
-
 export const initDB = async () => {
   try {
+    // Ensure the database directory exists
+    ensureDirExists(dirname(dbPath));
     console.log('Initializing database at:', dbPath);
+    
+    // Enable verbose mode for better debugging
+    sqlite3.verbose();
     
     // Open the database connection
     const db = await open({
@@ -37,6 +46,7 @@ export const initDB = async () => {
     console.log('Foreign keys enabled');
 
     // Create tables if they don't exist
+    console.log('Creating tables if they don\'t exist...');
     await db.exec(`
       CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,6 +82,7 @@ export const initDB = async () => {
     const tableCheck = async (tableName) => {
       try {
         const result = await db.all(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`, [tableName]);
+        console.log(`Table ${tableName} check:`, result.length > 0 ? 'exists' : 'does not exist');
         return result.length > 0;
       } catch (err) {
         console.error(`Error checking table ${tableName}:`, err);
@@ -84,6 +95,21 @@ export const initDB = async () => {
     const goalsExist = await tableCheck('goals');
     
     console.log('Table check results:', { transactionsExist, budgetsExist, goalsExist });
+    
+    // Try to fetch some data to ensure the connection is working
+    try {
+      const transactionCount = await db.get('SELECT COUNT(*) as count FROM transactions');
+      const budgetCount = await db.get('SELECT COUNT(*) as count FROM budgets');
+      const goalCount = await db.get('SELECT COUNT(*) as count FROM goals');
+      
+      console.log('Data check:', {
+        transactions: transactionCount.count,
+        budgets: budgetCount.count,
+        goals: goalCount.count
+      });
+    } catch (error) {
+      console.error('Error checking data counts:', error);
+    }
     
     return db;
   } catch (error) {

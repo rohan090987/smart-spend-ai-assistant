@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Card, 
@@ -113,7 +112,7 @@ const GoalTracker = () => {
     });
   };
 
-  const handleUpdateGoalProgress = () => {
+  function handleUpdateGoalProgress() {
     if (!selectedGoal || !updateAmount) {
       toast.error("Please enter an amount");
       return;
@@ -129,15 +128,15 @@ const GoalTracker = () => {
         status: newStatus
       }
     });
-  };
+  }
 
-  const calculateProgress = (current: number, target: number) => {
+  function calculateProgress(current: number, target: number) {
     return Math.min(Math.round((current / target) * 100), 100);
-  };
+  }
   
-  const formatDate = (dateString: string) => {
+  function formatDate(dateString: string) {
     return new Date(dateString).toLocaleDateString();
-  };
+  }
 
   if (isLoading) {
     return <div className="flex justify-center p-8">Loading goals...</div>;
