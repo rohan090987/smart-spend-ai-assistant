@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { 
   Card, 
@@ -143,7 +144,7 @@ const GoalTracker = () => {
   }
 
   if (error) {
-    return <div className="text-red-500 p-8">Error loading goals</div>;
+    return <div className="text-red-500 p-8">Error loading goals: {(error as Error).message}</div>;
   }
 
   return (

@@ -45,9 +45,8 @@ export interface Goal {
 // Helper function to handle API errors
 const handleApiError = (response: Response) => {
   if (!response.ok) {
-    const error = new Error(`API error: ${response.status} ${response.statusText}`);
     console.error('API error response:', response);
-    throw error;
+    throw new Error(`API error: ${response.status} ${response.statusText}`);
   }
   return response;
 };
@@ -57,13 +56,11 @@ export const apiService = {
   getTransactions: async (): Promise<Transaction[]> => {
     try {
       console.log("Fetching transactions from:", `${API_BASE}/transactions`);
-      const res = await fetch(`${API_BASE}/transactions`);
+      const res = await fetch(`${API_BASE}/transactions`, {
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       
-      if (!res.ok) {
-        console.error("Error response:", res.status, res.statusText);
-        throw new Error(`Failed to fetch transactions: ${res.status}`);
-      }
-      
+      handleApiError(res);
       const data = await res.json();
       console.log("Transactions data received:", data);
       return data;
@@ -83,7 +80,9 @@ export const apiService = {
       });
       
       handleApiError(res);
-      return res.json();
+      const data = await res.json();
+      console.log("Transaction added response:", data);
+      return data;
     } catch (error) {
       console.error("Error adding transaction:", error);
       throw error;
@@ -109,13 +108,11 @@ export const apiService = {
   getBudgets: async (): Promise<Budget[]> => {
     try {
       console.log("Fetching budgets from:", `${API_BASE}/budgets`);
-      const res = await fetch(`${API_BASE}/budgets`);
+      const res = await fetch(`${API_BASE}/budgets`, {
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       
-      if (!res.ok) {
-        console.error("Error response:", res.status, res.statusText);
-        throw new Error(`Failed to fetch budgets: ${res.status}`);
-      }
-      
+      handleApiError(res);
       const data = await res.json();
       console.log("Budgets data received:", data);
       return data;
@@ -135,7 +132,9 @@ export const apiService = {
       });
       
       handleApiError(res);
-      return res.json();
+      const data = await res.json();
+      console.log("Budget added response:", data);
+      return data;
     } catch (error) {
       console.error("Error adding budget:", error);
       throw error;
@@ -178,13 +177,11 @@ export const apiService = {
   getGoals: async (): Promise<Goal[]> => {
     try {
       console.log("Fetching goals from:", `${API_BASE}/goals`);
-      const res = await fetch(`${API_BASE}/goals`);
+      const res = await fetch(`${API_BASE}/goals`, {
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       
-      if (!res.ok) {
-        console.error("Error response:", res.status, res.statusText);
-        throw new Error(`Failed to fetch goals: ${res.status}`);
-      }
-      
+      handleApiError(res);
       const data = await res.json();
       console.log("Goals data received:", data);
       return data;
@@ -204,7 +201,9 @@ export const apiService = {
       });
       
       handleApiError(res);
-      return res.json();
+      const data = await res.json();
+      console.log("Goal added response:", data);
+      return data;
     } catch (error) {
       console.error("Error adding goal:", error);
       throw error;

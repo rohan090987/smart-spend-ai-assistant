@@ -123,6 +123,11 @@ export const initDB = async () => {
       console.error('Error checking data counts:', error);
     }
     
+    // Add test event listener to check for connection issues
+    db.on('error', (err) => {
+      console.error('SQLite error event:', err);
+    });
+    
     return db;
   } catch (error) {
     console.error('Error initializing database:', error);
