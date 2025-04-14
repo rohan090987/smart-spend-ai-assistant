@@ -33,6 +33,10 @@ export const initDB = async () => {
     // Enable verbose mode for better debugging
     sqlite3.verbose();
     
+    // Check if database file exists
+    const dbExists = fs.existsSync(dbPath);
+    console.log(`Database file ${dbExists ? 'exists' : 'does not exist'}, will ${dbExists ? 'open' : 'create'} it.`);
+    
     // Open the database connection
     const db = await open({
       filename: dbPath,
@@ -94,8 +98,15 @@ export const initDB = async () => {
     const tableCheck = async (tableName) => {
       try {
         const result = await db.all(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`, [tableName]);
-        console.log(`Table ${tableName} check:`, result.length > 0 ? 'exists' : 'does not exist');
-        return result.length > 0;
+        const exists = result.length > 0;
+        console.log(`Table ${tableName} check: ${exists ? 'exists' : 'does not exist'}`);
+        
+        if (exists) {
+          const count = await db.get(`SELECT COUNT(*) as count FROM ${tableName}`);
+          console.log(`Table ${tableName} has ${count.count} records`);
+        }
+        
+        return exists;
       } catch (err) {
         console.error(`Error checking table ${tableName}:`, err);
         return false;
@@ -108,22 +119,7 @@ export const initDB = async () => {
     
     console.log('Table check results:', { transactionsExist, budgetsExist, goalsExist });
     
-    // Try to fetch some data to ensure the connection is working
-    try {
-      const transactionCount = await db.get('SELECT COUNT(*) as count FROM transactions');
-      const budgetCount = await db.get('SELECT COUNT(*) as count FROM budgets');
-      const goalCount = await db.get('SELECT COUNT(*) as count FROM goals');
-      
-      console.log('Data check:', {
-        transactions: transactionCount.count,
-        budgets: budgetCount.count,
-        goals: goalCount.count
-      });
-    } catch (error) {
-      console.error('Error checking data counts:', error);
-    }
-    
-    // Add test event listener to check for connection issues
+    // Set up error event listener
     db.on('error', (err) => {
       console.error('SQLite error event:', err);
     });

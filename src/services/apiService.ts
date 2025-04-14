@@ -5,7 +5,7 @@ const getApiBaseUrl = () => {
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return "http://localhost:3001/api";
   }
-  // For deployed environments, use relative path instead of absolute
+  // For deployed environments, use relative path
   return "/api";
 };
 
@@ -42,11 +42,20 @@ export interface Goal {
   created_at?: string;
 }
 
-// Helper function to handle API errors
-const handleApiError = (response: Response) => {
+// Enhanced error handling for API responses
+const handleApiError = async (response: Response) => {
   if (!response.ok) {
-    console.error('API error response:', response);
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
+    // Try to get detailed error message from response
+    let errorMessage;
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.error || `API error: ${response.status} ${response.statusText}`;
+    } catch (e) {
+      errorMessage = `API error: ${response.status} ${response.statusText}`;
+    }
+    
+    console.error('API error response:', errorMessage);
+    throw new Error(errorMessage);
   }
   return response;
 };
@@ -57,10 +66,14 @@ export const apiService = {
     try {
       console.log("Fetching transactions from:", `${API_BASE}/transactions`);
       const res = await fetch(`${API_BASE}/transactions`, {
-        headers: { 'Cache-Control': 'no-cache' }
+        headers: { 
+          'Cache-Control': 'no-cache',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
       
-      handleApiError(res);
+      await handleApiError(res);
       const data = await res.json();
       console.log("Transactions data received:", data);
       return data;
@@ -75,11 +88,14 @@ export const apiService = {
       console.log("Adding transaction:", tx);
       const res = await fetch(`${API_BASE}/transactions`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(tx),
       });
       
-      handleApiError(res);
+      await handleApiError(res);
       const data = await res.json();
       console.log("Transaction added response:", data);
       return data;
@@ -94,9 +110,12 @@ export const apiService = {
       console.log("Deleting transaction:", id);
       const res = await fetch(`${API_BASE}/transactions/${id}`, {
         method: "DELETE",
+        headers: {
+          'Accept': 'application/json'
+        }
       });
       
-      handleApiError(res);
+      await handleApiError(res);
       return;
     } catch (error) {
       console.error("Error deleting transaction:", error);
@@ -109,10 +128,14 @@ export const apiService = {
     try {
       console.log("Fetching budgets from:", `${API_BASE}/budgets`);
       const res = await fetch(`${API_BASE}/budgets`, {
-        headers: { 'Cache-Control': 'no-cache' }
+        headers: { 
+          'Cache-Control': 'no-cache',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
       
-      handleApiError(res);
+      await handleApiError(res);
       const data = await res.json();
       console.log("Budgets data received:", data);
       return data;
@@ -127,11 +150,14 @@ export const apiService = {
       console.log("Adding budget:", budget);
       const res = await fetch(`${API_BASE}/budgets`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(budget),
       });
       
-      handleApiError(res);
+      await handleApiError(res);
       const data = await res.json();
       console.log("Budget added response:", data);
       return data;
@@ -146,11 +172,14 @@ export const apiService = {
       console.log("Updating budget:", id, budget);
       const res = await fetch(`${API_BASE}/budgets/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(budget),
       });
       
-      handleApiError(res);
+      await handleApiError(res);
       return;
     } catch (error) {
       console.error("Error updating budget:", error);
@@ -163,9 +192,12 @@ export const apiService = {
       console.log("Deleting budget:", id);
       const res = await fetch(`${API_BASE}/budgets/${id}`, {
         method: "DELETE",
+        headers: {
+          'Accept': 'application/json'
+        }
       });
       
-      handleApiError(res);
+      await handleApiError(res);
       return;
     } catch (error) {
       console.error("Error deleting budget:", error);
@@ -178,10 +210,14 @@ export const apiService = {
     try {
       console.log("Fetching goals from:", `${API_BASE}/goals`);
       const res = await fetch(`${API_BASE}/goals`, {
-        headers: { 'Cache-Control': 'no-cache' }
+        headers: { 
+          'Cache-Control': 'no-cache',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
       
-      handleApiError(res);
+      await handleApiError(res);
       const data = await res.json();
       console.log("Goals data received:", data);
       return data;
@@ -196,11 +232,14 @@ export const apiService = {
       console.log("Adding goal:", goal);
       const res = await fetch(`${API_BASE}/goals`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(goal),
       });
       
-      handleApiError(res);
+      await handleApiError(res);
       const data = await res.json();
       console.log("Goal added response:", data);
       return data;
@@ -215,11 +254,14 @@ export const apiService = {
       console.log("Updating goal:", id, update);
       const res = await fetch(`${API_BASE}/goals/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(update),
       });
       
-      handleApiError(res);
+      await handleApiError(res);
       return;
     } catch (error) {
       console.error("Error updating goal:", error);

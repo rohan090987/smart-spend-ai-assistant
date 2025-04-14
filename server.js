@@ -10,26 +10,27 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Initialize app
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-let db; // Global database connection
+// Global database connection
+let db;
 
-// Enable more detailed logging
-const logRequests = (req, res, next) => {
+// Middleware for detailed request logging
+app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
-};
+});
 
-app.use(logRequests);
-
-// Configure CORS to allow requests from all origins
+// Configure CORS
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
 
+// Parse JSON request bodies
 app.use(express.json());
 
 // Add a simple test endpoint
@@ -38,7 +39,7 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working!' });
 });
 
-// Define API routes with the database connection
+// Define API routes
 // Get all transactions
 app.get('/api/transactions', async (req, res) => {
   try {
@@ -274,31 +275,28 @@ app.put('/api/goals/:id', async (req, res) => {
   }
 });
 
-// Serve static files after API routes
+// Serve static files from the dist directory
 const distPath = join(__dirname, 'dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
   
-  // For any other route, serve the index.html file (for client-side routing)
+  // For client-side routing, serve index.html for non-API routes
   app.get('*', (req, res) => {
     if (!req.url.startsWith('/api/')) {
-      if (fs.existsSync(join(distPath, 'index.html'))) {
-        res.sendFile(join(distPath, 'index.html'));
-      } else {
-        res.status(404).send('Not found. The application may not be built yet.');
-      }
+      res.sendFile(join(distPath, 'index.html'));
     } else {
       // This is an API route that wasn't handled
       res.status(404).json({ error: 'API endpoint not found' });
     }
   });
+} else {
+  console.log(`Warning: Static files directory (${distPath}) not found`);
 }
 
-// Start the server only after database is initialized
+// Initialize the database and start the server
 (async () => {
   try {
     console.log('Initializing database before starting server...');
-    // Initialize the database connection
     db = await initDB();
     console.log('Database initialized successfully');
     
